@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>嗨寵物們航站 | HiPet Terminal P 快速預約</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'hp-coffee': '#a88d65', 'hp-gold': '#bfa37a', 'hp-cream': '#f4f1ea', 'hp-dark': '#1a2b4b' },
+                    fontFamily: { 'serif': ['Playfair Display', 'serif'], 'sans': ['Noto Sans TC', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .step-hidden { display: none; }
+        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 50; border-top: 2px solid #bfa37a; box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .selected-card { border-color: #bfa37a !important; background-color: #fcfaf5 !important; ring: 4px; ring-color: rgba(191, 163, 122, 0.2); }
+        .tag-holiday { background: #c53030; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+    </style>
+</head>
+<body class="bg-hp-cream font-sans text-hp-dark pb-32">
+
+    <nav class="bg-white sticky top-0 z-40 px-6 py-4 flex justify-between items-center shadow-md border-b-2 border-hp-gold">
+        <div class="text-2xl font-serif text-hp-coffee font-black italic">Terminal P</div>
+        <button onclick="window.location.reload()" class="text-hp-coffee text-[10px] font-bold border border-hp-coffee/30 px-3 py-1 rounded-full">重新預約</button>
+    </nav>
+
+    <div id="booking-section" class="max-w-xl mx-auto py-8 px-6">
+        
+        <div id="step1" class="bg-white p-8 rounded-2xl shadow-xl border-t-8 border-hp-gold">
+            <h2 class="text-xl font-bold mb-4 font-serif text-hp-coffee">STEP 1. 入住資格確認</h2>
+            <div class="space-y-3 mb-6">
+                <label class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-hp-cream/30 transition">
+                    <input type="checkbox" class="mt-1 w-5 h-5 check-item accent-hp-gold">
+                    <span class="text-sm">非限制品種（比特犬、鬆獅犬、獒犬）。</span>
+                </label>
+                <label class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-hp-cream/30 transition">
+                    <input type="checkbox" class="mt-1 w-5 h-5 check-item accent-hp-gold">
+                    <span class="text-sm">健康狀況良好，無傳染病、發燒或術後恢復中。</span>
+                </label>
+                <label class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-hp-cream/30 transition">
+                    <input type="checkbox" class="mt-1 w-5 h-5 check-item accent-hp-gold">
+                    <span class="text-sm">無攻擊性、嚴重吠叫或破壞行為。</span>
+                </label>
+            </div>
+            <button onclick="validateStep1()" class="w-full bg-hp-gold text-white py-4 rounded-xl font-bold shadow-lg hover:bg-hp-coffee transition active:scale-95">確認符合，開始預約</button>
+        </div>
+
+        <div id="step2" class="step-hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-md border-2 border-hp-gold/20">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-hp-coffee">📅 1. 選擇預定期間</h3>
+                    <div id="season-tag"></div>
+                </div>
+                <input type="text" id="dateRange" class="w-full border-2 border-hp-cream p-4 rounded-xl focus:border-hp-gold outline-none bg-hp-cream/30 text-lg font-mono text-center" placeholder="點擊選擇入住/退宿日期">
+            </div>
+
+            <div id="cabin-list" class="space-y-4 opacity-50 pointer-events-none transition-opacity duration-500">
+                <h3 class="font-bold text-hp-coffee">✨ 2. 選擇住宿艙等</h3>
+                
+                <div onclick="selectRoom('economy', this)" class="room-card cursor-pointer bg-white p-6 rounded-2xl shadow-md border-2 border-transparent transition relative">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-black text-xl text-hp-dark leading-tight">經濟艙</h4>
+                            <p class="text-[10px] text-slate-500 italic mt-1">每日 3 次室內活動、2 次生活回報</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-hp-gold font-black text-2xl" id="price-economy">$1,080</div>
+                            <div class="text-[10px] text-slate-400 font-bold">/ 24H</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="selectRoom('business', this)" class="room-card cursor-pointer bg-white p-6 rounded-2xl shadow-md border-2 border-transparent transition relative">
+                    <div class="absolute top-0 right-0 bg-hp-gold text-white text-[10px] px-3 py-1 rounded-bl-lg font-bold">⭐ 85% 飼主選擇</div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-black text-xl text-hp-dark leading-tight">商務艙</h4>
+                            <p class="text-[10px] text-hp-coffee font-bold mt-1">陪伴升級：包含戶外散步與基礎護理</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-hp-gold font-black text-2xl" id="price-business">$1,440</div>
+                            <div class="text-[10px] text-slate-400 font-bold">/ 24H</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="selectRoom('first', this)" class="room-card cursor-pointer bg-white p-6 rounded-2xl shadow-md border-2 border-transparent transition relative">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-black text-xl text-hp-dark leading-tight">頭等艙</h4>
+                            <p class="text-[10px] text-slate-500 italic mt-1">專屬全時照護與尊榮空間</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-hp-gold font-black text-2xl" id="price-first">$2,160</div>
+                            <div class="text-[10px] text-slate-400 font-bold">/ 24H</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="step3" class="step-hidden space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-t-8 border-hp-gold">
+                <h2 class="text-xl font-bold mb-6 text-hp-coffee font-serif">STEP 3. 選擇付款方式</h2>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center gap-4 p-5 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-hp-gold hover:bg-hp-cream/30 transition">
+                        <input type="radio" name="pay" class="w-5 h-5 accent-hp-gold" checked>
+                        <div class="font-bold text-slate-700">信用卡一次付清</div>
+                    </label>
+                    <label class="flex items-center gap-4 p-5 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-hp-gold hover:bg-hp-cream/30 transition">
+                        <input type="radio" name="pay" class="w-5 h-5 accent-hp-gold">
+                        <div>
+                            <div class="font-bold text-slate-700">信用卡分期 (3期0利率)</div>
+                            <div class="text-[10px] text-hp-coffee font-bold">指定銀行享 0 利率優惠</div>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-4 p-5 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-hp-gold hover:bg-hp-cream/30 transition">
+                        <input type="radio" name="pay" class="w-5 h-5 accent-hp-gold">
+                        <div class="font-bold text-slate-700">ATM 虛擬帳號轉帳</div>
+                    </label>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <p class="text-xs text-slate-400 text-center mb-4 leading-relaxed">預約過程中遇到問題？或者想確認入住資格？</p>
+                    <a href="https://line.me" class="flex items-center justify-center gap-2 bg-[#06C755] text-white py-4 rounded-xl font-bold shadow-lg hover:opacity-90 transition">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" class="w-5 h-5"> 詢問 LINE@ 官方客服
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sticky-footer" class="sticky-footer p-5 px-8 flex justify-between items-center hidden rounded-t-3xl">
+        <div>
+            <div class="text-xs text-hp-coffee font-bold" id="detail-text">請選擇預訂日期</div>
+            <div class="text-3xl font-serif font-black text-hp-gold" id="total-price">$0</div>
+        </div>
+        <button onclick="handleFlow()" id="next-btn" class="bg-hp-gold text-white px-10 py-4 rounded-full font-bold shadow-lg transition active:scale-95">下一步</button>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let nights = 0;
+        let selectedCabin = '';
+        let currentSeason = 'normal';
+        
+        const prices = {
+            economy: { normal: 1080, holiday: 1320, cny: 1560 },
+            business: { normal: 1440, holiday: 1680, cny: 1920 },
+            first: { normal: 2160, holiday: 2400, cny: 2880 }
+        };
+
+        const fp = flatpickr("#dateRange", {
+            mode: "range", minDate: "today", dateFormat: "Y-m-d",
+            onClose: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    nights = Math.ceil(Math.abs(selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24));
+                    detectSeason(selectedDates);
+                    calculateTotal();
+                    document.getElementById('cabin-list').classList.remove('opacity-50', 'pointer-events-none');
+                }
+            }
+        });
+
+        function detectSeason(dates) {
+            currentSeason = 'normal';
+            dates.forEach(date => {
+                const mmdd = (date.getMonth() + 1).toString().padStart(2, '0') + '-' + date.getDate().toString().padStart(2, '0');
+                if (mmdd >= '02-05' && mmdd <= '02-15') currentSeason = 'cny';
+                else if ((mmdd >= '12-24' || mmdd <= '01-02') && currentSeason !== 'cny') currentSeason = 'holiday';
+            });
+            const seasonTag = document.getElementById('season-tag');
+            if(currentSeason === 'cny') seasonTag.innerHTML = '<span class="tag-holiday">🧧 春節價期間</span>';
+            else if(currentSeason === 'holiday') seasonTag.innerHTML = '<span class="tag-holiday">🎄 節慶價期間</span>';
+            else seasonTag.innerHTML = '<span class="text-hp-coffee text-[10px] font-bold">🌿 一般價期間</span>';
+        }
+
+        function calculateTotal() {
+            document.getElementById('price-economy').innerText = `$${prices.economy[currentSeason].toLocaleString()}`;
+            document.getElementById('price-business').innerText = `$${prices.business[currentSeason].toLocaleString()}`;
+            document.getElementById('price-first').innerText = `$${prices.first[currentSeason].toLocaleString()}`;
+            if (nights > 0 && selectedCabin) {
+                const total = nights * prices[selectedCabin][currentSeason];
+                document.getElementById('detail-text').innerText = `${nights} 晚 x 每晚 $${prices[selectedCabin][currentSeason]}`;
+                document.getElementById('total-price').innerText = `$${total.toLocaleString()}`;
+                document.getElementById('sticky-footer').classList.remove('hidden');
+            }
+        }
+
+        function validateStep1() {
+            const checks = document.querySelectorAll('.check-item');
+            if(Array.from(checks).every(c => c.checked)) nextStep(2);
+            else alert('請先確認入住資格。');
+        }
+
+        function selectRoom(cabin, el) {
+            selectedCabin = cabin;
+            document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected-card'));
+            el.classList.add('selected-card');
+            calculateTotal();
+        }
+
+        function nextStep(step) {
+            document.getElementById(`step${currentStep}`).classList.add('step-hidden');
+            document.getElementById(`step${step}`).classList.remove('step-hidden');
+            currentStep = step;
+            if (step === 3) document.getElementById('next-btn').innerText = '前往付款';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleFlow() {
+            if(currentStep === 2) {
+                if(!selectedCabin || nights === 0) { alert('請完整選擇日期與艙等'); return; }
+                nextStep(3);
+            } else if(currentStep === 3) alert('即將進入金流支付頁面...');
+        }
+    </script>
+</body>
+</html>
